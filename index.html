@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="sa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>उडुपिनगरम्</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            padding-bottom: 220px; /* Space for the bottom sheet on mobile */
+            background-color: #f4f7f6;
+            color: #333;
+        }
+
+        .main-title {
+            text-align: center;
+            color: #1565c0;
+            margin: 0 0 20px 0;
+            font-size: 2rem;
+            border-bottom: 2px solid #e3f2fd;
+            padding-bottom: 10px;
+        }
+
+        .layout-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .story-container {
+            flex: 2;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            font-size: 1.25rem;
+            line-height: 2.1;
+        }
+
+        .details-container {
+            background: #ffffff;
+            padding: 20px;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            overflow-y: auto;
+            border-radius: 20px 20px 0 0;
+            z-index: 100;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #1565c0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .clickable-word {
+            cursor: pointer;
+            color: #2c3e50;
+            border-bottom: 2px dotted #90caf9;
+            transition: all 0.2s ease;
+            margin: 0 1px;
+            padding: 2px 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .clickable-word:hover {
+            background-color: #e3f2fd;
+            border-bottom-color: #1976d2;
+        }
+
+        .clickable-word.active {
+            background-color: #bbdefb;
+            border-bottom: 2px solid #1976d2;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+
+        .punctuation {
+            margin-right: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 8px 5px;
+            border-bottom: 1px solid #eeeeee;
+        }
+
+        th {
+            color: #666;
+            width: 45%;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            color: #777;
+            font-style: italic;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        /* Desktop Styles */
+        @media (min-width: 768px) {
+            body {
+                padding: 30px;
+                padding-bottom: 30px; /* Reset padding on desktop */
+            }
+            .layout-wrapper {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            .story-container {
+                padding: 30px;
+                font-size: 1.4rem;
+                line-height: 2.2;
+            }
+            .details-container {
+                flex: 1;
+                position: sticky;
+                top: 30px;
+                bottom: auto;
+                height: fit-content;
+                max-height: 85vh;
+                border-radius: 12px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="main-title">उडुपिनगरम्</h1>
+
+    <div class="layout-wrapper">
+        <div class="story-container" id="story">
+            <!-- Story will be injected here via JavaScript -->
+        </div>
+
+        <div class="details-container">
+            <h2>पद-विवरणम् (Word Details)</h2>
+            <div id="details-content">
+                <p class="empty-state">शब्दस्य विवरणं ज्ञातुं तस्य उपरि नोदनं करोतु।<br>(Tap on any underlined word to view its properties.)</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dictionary data based on the provided JSON
+        const wordData = [
+            { text: "उडुपिनगरं", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "उडुपिनगर-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "कर्नाटकराज्ये", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "कर्नाटकराज्य-शब्दः", vibhakti: "सप्तमी", vachanam: "एकवचनम्" } },
+            { text: "तुळुप्रदेशे", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "तुळुप्रदेश-शब्दः", vibhakti: "सप्तमी", vachanam: "एकवचनम्" } },
+            { text: "अस्ति", type: "क्रियापदम्", properties: { root: "अस्-धातुः", lakaram: "लट्लकारः", purusham: "प्रथमपुरुषः", vachanam: "एकवचनम्" } },
+            { text: "इदं", type: "सर्वनामपदम्", properties: { antham: "मकारान्तः", lingam: "नपुंसकलिङ्गः", root: "इदम्-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "नगरं", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "नगर-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "मङ्गलूरुनगरस्य", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "मङ्गलूरुनगर-शब्दः", vibhakti: "षष्ठी", vachanam: "एकवचनम्" } },
+            { text: "समीपे", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "समीप-शब्दः", vibhakti: "सप्तमी", vachanam: "एकवचनम्" } },
+            { text: "एव", type: "अव्ययम्", properties: { root: "एव-अव्ययम्" } },
+            { text: "उडुपिनगरस्य", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "उडुपिनगर-शब्दः", vibhakti: "षष्ठी", vachanam: "एकवचनम्" } },
+            { text: "मुख्यदेवः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "मुख्यदेव-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "श्रीकृष्णः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "श्रीकृष्ण-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "भवति", type: "क्रियापदम्", properties: { root: "भू-धातुः", lakaram: "लट्लकारः", purusham: "प्रथमपुरुषः", vachanam: "एकवचनम्" } },
+            { text: "तत्र", type: "अव्ययम्", properties: { root: "तत्र-अव्ययम्" } },
+            { text: "श्रीकृष्णस्य", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "श्रीकृष्ण-शब्दः", vibhakti: "षष्ठी", vachanam: "एकवचनम्" } },
+            { text: "बालमूर्तिः", type: "नामपदम्", properties: { antham: "इकारान्तः", lingam: "स्त्रीलिङ्गः", root: "बालमूर्ति-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "एषा", type: "सर्वनामपदम्", properties: { antham: "आकारान्तः", lingam: "स्त्रीलिङ्गः", root: "एतद्-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "मूर्ति:", type: "नामपदम्", properties: { antham: "इकारान्तः", lingam: "स्त्रीलिङ्गः", root: "मूर्ति-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "रुक्मिणीदेव्या", type: "नामपदम्", properties: { antham: "ईकारान्तः", lingam: "स्त्रीलिङ्गः", root: "रुक्मिणीदेवी-शब्दः", vibhakti: "तृतीया", vachanam: "एकवचनम्" } },
+            { text: "अर्चिता", type: "नामपदम्", properties: { antham: "आकारान्तः", lingam: "स्त्रीलिङ्गः", root: "अर्चिता-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "प्राचीनकाले", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "प्राचीनकाल-शब्दः", vibhakti: "सप्तमी", vachanam: "एकवचनम्" } },
+            { text: "श्रीमध्वाचार्यद्वारा", type: "अव्ययम्", properties: { root: "श्रीमध्वाचार्यद्वारा-अव्ययम्" } },
+            { text: "श्रीकृष्णविग्रहस्य", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "श्रीकृष्णविग्रह-शब्दः", vibhakti: "षष्ठी", vachanam: "एकवचनम्" } },
+            { text: "स्थापनं", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "स्थापन-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "कृतम्", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "कृत-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "हस्ते", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "हस्त-शब्दः", vibhakti: "सप्तमी", vachanam: "एकवचनम्" } },
+            { text: "मन्थदण्डः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "मन्थदण्ड-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "एषः", type: "सर्वनामपदम्", properties: { antham: "दकारान्तः (अकारान्तः)", lingam: "पुल्लिङ्गः", root: "एतद्-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "देवालयः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "देवालय-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "शोभां", type: "नामपदम्", properties: { antham: "आकारान्तः", lingam: "स्त्रीलिङ्गः", root: "शोभा-शब्दः", vibhakti: "द्वितीया", vachanam: "एकवचनम्" } },
+            { text: "वर्धयति", type: "क्रियापदम्", properties: { root: "वृध्-धातुः", lakaram: "लट्लकारः", purusham: "प्रथमपुरुषः", vachanam: "एकवचनम्" } },
+            { text: "समुद्रः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "समुद्र-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "पर्वताः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "पर्वत-शब्दः", vibhakti: "प्रथमा", vachanam: "बहुवचनम्" } },
+            { text: "नद्यः", type: "नामपदम्", properties: { antham: "ईकारान्तः", lingam: "स्त्रीलिङ्गः", root: "नदी-शब्दः", vibhakti: "प्रथमा", vachanam: "बहुवचनम्" } },
+            { text: "कृषिभूमिः", type: "नामपदम्", properties: { antham: "इकारान्तः", lingam: "स्त्रीलिङ्गः", root: "कृषिभूमि-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "इति", type: "अव्ययम्", properties: { root: "इति-अव्ययम्" } },
+            { text: "रम्यम्", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "रम्य-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "अत्र", type: "अव्ययम्", properties: { root: "अत्र-अव्ययम्" } },
+            { text: "नित्यरथोत्सवं", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "नित्यरथोत्सव-शब्दः", vibhakti: "द्वितीया", vachanam: "एकवचनम्" } },
+            { text: "वयम्", type: "सर्वनामपदम्", properties: { antham: "दकारान्तः", lingam: "त्रिषु लिङ्गेषु समानः", root: "अस्मद्-शब्दः", vibhakti: "प्रथमा", vachanam: "बहुवचनम्" } },
+            { text: "अवश्यं", type: "अव्ययम्", properties: { root: "अवश्यम्-अव्ययम्" } },
+            { text: "पश्यामः", type: "क्रियापदम्", properties: { root: "दृश् (पश्य्)-धातुः", lakaram: "लट्लकारः", purusham: "उत्तमपुरुषः", vachanam: "बहुवचनम्" } },
+            { text: "सौन्दर्यम्", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "सौन्दर्य-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "आकर्षकं", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "आकर्षक-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "अस्य", type: "सर्वनामपदम्", properties: { antham: "मकारान्तः", lingam: "नपुंसकलिङ्गः", root: "इदम्-शब्दः", vibhakti: "षष्ठी", vachanam: "एकवचनम्" } },
+            { text: "नगरस्य", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "नगर-शब्दः", vibhakti: "षष्ठी", vachanam: "एकवचनम्" } },
+            { text: "भोजनम्", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "भोजन-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "अतीव", type: "अव्ययम्", properties: { root: "अतीव-अव्ययम्" } },
+            { text: "प्रसिद्धम्", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "प्रसिद्ध-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "उडुपि-भोजनालयाः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "उडुपि-भोजनालय-शब्दः", vibhakti: "प्रथमा", vachanam: "बहुवचनम्" } },
+            { text: "सर्वत्र", type: "अव्ययम्", properties: { root: "सर्वत्र-अव्ययम्" } },
+            { text: "प्रसिद्धाः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "प्रसिद्ध-शब्दः", vibhakti: "प्रथमा", vachanam: "बहुवचनम्" } },
+            { text: "जनाः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "जन-शब्दः", vibhakti: "प्रथमा", vachanam: "बहुवचनम्" } },
+            { text: "प्रायः", type: "अव्ययम्", properties: { root: "प्रायस्-अव्ययम्" } },
+            { text: "तुळु-भाषां", type: "नामपदम्", properties: { antham: "आकारान्तः", lingam: "स्त्रीलिङ्गः", root: "तुळु-भाषा-शब्दः", vibhakti: "द्वितीया", vachanam: "एकवचनम्" } },
+            { text: "वदन्ति", type: "क्रियापदम्", properties: { root: "वद्-धातुः", lakaram: "लट्लकारः", purusham: "प्रथमपुरुषः", vachanam: "बहुवचनम्" } },
+            { text: "कन्नडभाषीजनाः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "कन्नडभाषीजन-शब्दः", vibhakti: "प्रथमा", vachanam: "बहुवचनम्" } },
+            { text: "अपि", type: "अव्ययम्", properties: { root: "अपि-अव्ययम्" } },
+            { text: "अधिकाः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "अधिक-शब्दः", vibhakti: "प्रथमा", vachanam: "बहुवचनम्" } },
+            { text: "निवसन्ति", type: "क्रियापदम्", properties: { root: "नि+वस्-धातुः", lakaram: "लट्लकारः", purusham: "प्रथमपुरुषः", vachanam: "बहुवचनम्" } },
+            { text: "यक्षगानम्", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "यक्षगान-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "नृत्यम्", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "नृत्य-शब्दः", vibhakti: "द्वितीया", vachanam: "एकवचनम्" } },
+            { text: "नृत्यन्ति", type: "क्रियापदम्", properties: { root: "नृत्-धातुः", lakaram: "लट्लकारः", purusham: "प्रथमपुरुषः", vachanam: "बहुवचनम्" } },
+            { text: "'पर्याया'", type: "नामपदम्", properties: { antham: "आकारान्तः", lingam: "स्त्रीलिङ्गः", root: "पर्याया-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "मुख्यः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "मुख्य-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "उत्सवः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "उत्सव-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "उत्सवे", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "उत्सव-शब्दः", vibhakti: "सप्तमी", vachanam: "एकवचनम्" } },
+            { text: "परस्परं", type: "अव्ययम्", properties: { root: "परस्परम्-अव्ययम्" } },
+            { text: "मिलन्ति", type: "क्रियापदम्", properties: { root: "मिल्-धातुः", lakaram: "लट्लकारः", purusham: "प्रथमपुरुषः", vachanam: "बहुवचनम्" } },
+            { text: "श्रीजनार्दनदेवालयः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "श्रीजनार्दनदेवालय-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "शृङ्गेरि", type: "नामपदम्", properties: { root: "शृङ्गेरि-शब्दः" } },
+            { text: "श्रीशारदाम्बा", type: "नामपदम्", properties: { root: "श्रीशारदाम्बा-शब्दः" } },
+            { text: "होरनाडु", type: "नामपदम्", properties: { root: "होरनाडु-शब्दः" } },
+            { text: "श्रीअन्नपूरणीदेवालयः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "श्रीअन्नपूरणीदेवालय-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "कोल्लूरु", type: "नामपदम्", properties: { root: "कोल्लूरु-शब्दः" } },
+            { text: "श्रीमूकाम्बिका", type: "नामपदम्", properties: { root: "श्रीमूकाम्बिका-शब्दः" } },
+            { text: "धर्मस्थल", type: "नामपदम्", properties: { root: "धर्मस्थल-शब्दः" } },
+            { text: "श्रीमञ्जुनाथालयः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "श्रीमञ्जुनाथालय-शब्दः", vibhakti: "प्रथमा", vachanam: "एकवचनम्" } },
+            { text: "अनेके", type: "सर्वनामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "अनेक-शब्दः", vibhakti: "प्रथमा", vachanam: "बहुवचनम्" } },
+            { text: "देवालयाः", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "देवालय-शब्दः", vibhakti: "प्रथमा", vachanam: "बहुवचनम्" } },
+            { text: "सन्ति", type: "क्रियापदम्", properties: { root: "अस्-धातुः", lakaram: "लट्लकारः", purusham: "प्रथमपुरुषः", vachanam: "बहुवचनम्" } },
+            { text: "वयं", type: "सर्वनामपदम्", properties: { antham: "दकारान्तः", lingam: "त्रिषु लिङ्गेषु समानः", root: "अस्मद्-शब्दः", vibhakti: "प्रथमा", vachanam: "बहुवचनम्" }},
+            { text: "सर्वे", type: "सर्वनामपदम्", properties: { antham: "अकारान्तः", lingam: "पुल्लिङ्गः", root: "सर्व-शब्दः", vibhakti: "प्रथमा", vachanam: "बहुवचनम्" } },
+            { text: "उडुपिनगरम्", type: "नामपदम्", properties: { antham: "अकारान्तः", lingam: "नपुंसकलिङ्गः", root: "उडुपिनगर-शब्दः", vibhakti: "द्वितीया", vachanam: "एकवचनम्" } },
+            { text: "गच्छामः", type: "क्रियापदम्", properties: { root: "गम् (गच्छ्)-धातुः", lakaram: "लट्लकारः", purusham: "उत्तमपुरुषः", vachanam: "बहुवचनम्" } }
+        ];
+
+        // Create a lookup map for faster processing
+        const dictionaryMap = {};
+        wordData.forEach(item => {
+            dictionaryMap[item.text] = item;
+            dictionaryMap[item.text.replace(/[':,।]/g, '')] = item;
+        });
+
+        const storyText = `उडुपिनगरं कर्नाटकराज्ये तुळुप्रदेशे अस्ति । इदं नगरं मङ्गलूरुनगरस्य समीपे एव अस्ति । उडुपिनगरस्य मुख्यदेवः श्रीकृष्णः भवति । तत्र श्रीकृष्णस्य बालमूर्तिः अस्ति। एषा मूर्ति: रुक्मिणीदेव्या अर्चिता अस्ति । प्राचीनकाले श्रीमध्वाचार्यद्वारा श्रीकृष्णविग्रहस्य स्थापनं कृतम्। श्रीकृष्णस्य हस्ते मन्थदण्डः अस्ति । एषः देवालयः उडुपिनगरस्य शोभां वर्धयति । 
+        
+समुद्रः पर्वताः नद्यः कृषिभूमिः इति इदं नगरं रम्यम् अस्ति । अत्र नित्यरथोत्सवं वयम् अवश्यं पश्यामः। उडुपिनगरस्य सौन्दर्यम् आकर्षकं भवति । अस्य नगरस्य भोजनम् अतीव प्रसिद्धम्। उडुपि-भोजनालयाः सर्वत्र प्रसिद्धाः एव । अत्र जनाः प्रायः तुळु-भाषां वदन्ति, कन्नडभाषीजनाः अपि अधिकाः निवसन्ति। यक्षगानम् इति प्रसिद्धं नृत्यम् अत्र नृत्यन्ति। 'पर्याया' इति उडुपिनगरस्य मुख्यः उत्सवः भवति। अधिकाः जनाः उत्सवे परस्परं मिलन्ति । 
+        
+उडुपिनगरस्य समीपे श्रीजनार्दनदेवालयः, शृङ्गेरि - श्रीशारदाम्बा - देवालयः, होरनाडु - श्रीअन्नपूरणीदेवालयः, कोल्लूरु- श्रीमूकाम्बिका - देवालयः, धर्मस्थल - श्रीमञ्जुनाथालयः इति अनेके देवालयाः सन्ति । वयं सर्वे उडुपिनगरम् अवश्यं गच्छामः।`;
+
+        const storyContainer = document.getElementById('story');
+        const paragraphs = storyText.split('\n');
+        
+        paragraphs.forEach(para => {
+            if (para.trim() === '') return;
+            
+            const pElem = document.createElement('p');
+            const tokens = para.trim().split(/\s+/);
+            
+            tokens.forEach(token => {
+                const cleanWord = token.replace(/[।.,;:'"]/g, '');
+                const punctuationMatch = token.match(/[।.,;:'"]+$/);
+                const prefixMatch = token.match(/^['"]/);
+                
+                let renderSpan = document.createElement('span');
+                
+                if (dictionaryMap[cleanWord] || dictionaryMap[token]) {
+                    const dictKey = dictionaryMap[token] ? token : cleanWord;
+                    renderSpan.textContent = cleanWord;
+                    renderSpan.className = 'clickable-word';
+                    renderSpan.onclick = function() {
+                        document.querySelectorAll('.clickable-word').forEach(el => el.classList.remove('active'));
+                        this.classList.add('active');
+                        showDetails(dictKey, token);
+                    };
+                    
+                    if (prefixMatch) {
+                        pElem.appendChild(document.createTextNode(prefixMatch[0]));
+                    }
+                    
+                    pElem.appendChild(renderSpan);
+                    
+                    if (punctuationMatch) {
+                        const puncSpan = document.createElement('span');
+                        puncSpan.className = 'punctuation';
+                        puncSpan.textContent = punctuationMatch[0];
+                        pElem.appendChild(puncSpan);
+                    } else {
+                        pElem.appendChild(document.createTextNode(' '));
+                    }
+                } else {
+                    pElem.appendChild(document.createTextNode(token + ' '));
+                }
+            });
+            storyContainer.appendChild(pElem);
+        });
+
+        function showDetails(wordKey, originalToken) {
+            const detailsContent = document.getElementById('details-content');
+            const detailsContainer = document.querySelector('.details-container');
+            const data = dictionaryMap[wordKey];
+            
+            if (!data) return;
+
+            let html = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="color: #2c3e50; font-size: 1.4em; margin: 0;">${data.text}</h3>
+                    <span style="background: #e3f2fd; color: #1565c0; padding: 4px 10px; border-radius: 15px; font-size: 0.85em; font-weight: bold;">${data.type}</span>
+                </div>
+                <table>
+                    <tbody>
+            `;
+
+            const labels = {
+                antham: "अन्तः (Ending)",
+                lingam: "लिङ्गम् (Gender)",
+                root: "मूलशब्दः/धातुः (Root)",
+                vibhakti: "विभक्तिः (Case)",
+                vachanam: "वचनम् (Number)",
+                lakaram: "लकारः (Tense/Mood)",
+                purusham: "पुरुषः (Person)"
+            };
+
+            for (const [key, value] of Object.entries(data.properties || {})) {
+                if (value) {
+                    html += `
+                        <tr>
+                            <th>${labels[key] || key}</th>
+                            <td>${value}</td>
+                        </tr>
+                    `;
+                }
+            }
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            detailsContent.innerHTML = html;
+            
+            // On mobile, automatically scroll the details container slightly so the user sees it updated
+            if (window.innerWidth < 768) {
+                detailsContainer.scrollTop = 0;
+            }
+        }
+    </script>
+</body>
+</html>
